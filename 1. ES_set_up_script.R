@@ -19,7 +19,7 @@
 
 ###################### SET UP SCRIPT #################################
 
-############ RUN THIS BEFORE SLICCD analyses #########################
+############ RUN THIS BEFORE SLICCD analyses (script 2) #########################
 
 
 ######## 1. Load packages ###########################
