@@ -30,28 +30,19 @@
 
 ######## 1. Load packages ###########################
 
-#library(readxl)      ##for reading in excel files
-#library(writexl)     ##for writing to excel files 
 library(dplyr)       ##for working with 'tidy' data
-#library(stringr)     ##for working with strings
-#library(janitor)     ##for rounding 0.5 upwards and clean_names function
-#library(magrittr)    ##for %<>% operator
 library(ggplot2)
-#library(epiDisplay)
-#library(reshape2)
 library(tidyr)
-#library(tidyverse)
 library(data.table)
 library(epitools)    ## for estimating 95% CIs for prevalence
 library(glmmTMB)     ## for modelling the data
 library(VGAM)
-#library(Hmisc)
-#library(MatrixModels)
-#library(mvtnorm)
-#library(quantreg)
 library(rms)         ## for restricted cubic splines 
-#library(gridExtra) 
-
+library(Hmisc)
+library(MatrixModels)
+library(mvtnorm)
+library(quantreg)
+library(gridExtra)
 
 ######### 2. Read in the data ########################
 
@@ -76,10 +67,9 @@ objective1 <- "/PHI_conf/NIPT_evaluation_anon/Data/wd_phd/Objective1/"
 objective2 <- "/PHI_conf/NIPT_evaluation_anon/Data/wd_phd/Objective2/"
 
 
-
 ################## 4. Format the dataset - extract cohort #####################
 
-# sort dataset by year of preganncy end:###########
+# sort dataset by year of pregnancy end:###########
 
 sliccd <- SLiCCD_cohort_2 %>%
   arrange(time_period)
@@ -88,7 +78,6 @@ sliccd <- SLiCCD_cohort_2 %>%
 
 sliccd_ds_extract <- sliccd %>%
   filter(ds_singleton_cohort == 1)
-
 
 
 ############## 5. Merge SLiCCD and NRS datasets ##################
@@ -208,7 +197,7 @@ prevalence_data_per_year <- total_counts_per_year%>%
   ungroup()
 prevalence_data_per_year
 
-# plotting prev data per year
+# plotting prev data per year with PRRs [Figure 1] -----------------------------
 
 prevalence_data_per_year%>%
   ggplot(aes(x = factor(time_period), y = prevalence, group = 1))+  
@@ -225,7 +214,7 @@ prevalence_data_per_year%>%
   geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2, colour = "blue4")+
   geom_line(colour = "blue4")+  
   geom_line(aes(y = mean(prevalence), group = 1), colour = "red")+
-  labs(x = "Year (of pregnancy end)", y = "Total birth prevalence, per 10,000 total births (95% CI)")+
+  labs(x = "Year", y = "Total birth prevalence, per 10,000 total births (95% CI)")+
   ##add shaded area to highlight the implemenation of NIPT
   
   theme_minimal()+
@@ -233,10 +222,10 @@ prevalence_data_per_year%>%
   ylim(0,30)+
   theme(text = element_text(size=20))
 
-
-############## 7. Modelling total birth prevalences time trends ##################
+############## 7. Modelling total birth prevalence time trends ##################
 
 ## Transforming/centering year (time_period) as glmmTMB needs it to start in 0
+
 prevalence_data_per_year <- transform(prevalence_data_per_year, time_period = time_period - min(time_period))
 
 
@@ -278,25 +267,23 @@ result_df_COM1 <- data.frame(
 print(result_df_COM1)
 
 
-
-# Figure 1
+# Figure S1 (appendix)
 prevalence_data_per_year$birth_prev <- prevalence_data_per_year$prevalence
 
-scatterplot <- ggplot(prevalence_data_per_year, aes(x = time_period + 2000, y = birth_prev)) +
-  geom_point(aes(y = birth_prev), shape = 1, size = 2, color = "black") 
-
-# add fitted values and confidence intervals as blue lines
+scatterplot <- ggplot(prevalence_data_per_year, aes(x = time_period + 2000, y = birth_prev)) +#axis from 2000-2021
+  geom_point(aes(y = birth_prev), shape = 21, size = 3, color = "black", fill = "black") 
+# Add fitted values and confidence intervals as blue lines
 lineplot <- scatterplot +
-  geom_line(data = result_df_COM1, aes(x = time_period+2000, y = Predicted_Mean), color = "blue") +
+  geom_line(data = result_df_COM1, aes(x = time_period+2000, y = Predicted_Mean), color = "blue", size = 1) +
   geom_ribbon(data = result_df_COM1, aes(x = time_period+2000, ymin = Lower_Bound, ymax = Upper_Bound), fill = "blue", alpha = 0.2) +
   
-  # customize plot labels and appearance
-  labs(title = "Linear time trend",
-       x = "Year",
-       y = "Prevalence (per 10,000 total births)") +
+  # Customize plot labels and appearance
+  labs(x = "Year",
+       y = "Total birth prevalence per 10,000 total births") +
   scale_x_continuous(
     breaks = seq(2000,2021, by = 1),
     labels = seq (2000, 2021, by = 1))+
+  ylim(0,30)+
   theme_minimal()+
   theme(text = element_text(size=20))
 
@@ -369,7 +356,7 @@ summary(PW_period3)
 round(exp(confint(PW_period3)), 3)
 
 
-## Figure S1 -- specified 4 knots (0,13,16,21)
+###### Figure 2 -- specified 4 knots (0,13,16,21) -------------------
 
 # Predict values
 births_COMpoissonm1 <- data.frame(time_period = newx, total_denom = prevalence_data_per_year$total_denom)
@@ -398,24 +385,24 @@ print(result_df_COM_nl)
 prevalence_data_per_year$birth_prev <- (prevalence_data_per_year$total_sliccd / prevalence_data_per_year$total_denom) * 10000
 
 scatterplot <- ggplot(prevalence_data_per_year, aes(x = time_period + 2000, y = birth_prev)) +
-  geom_point(aes(y = birth_prev), shape = 1, size = 2, color = "black") 
-
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.6, colour = "steel blue")+
+  geom_point(aes(y = birth_prev), shape = 21, size = 3, fill = "steel blue") 
 # Add fitted values and confidence intervals as blue lines
 lineplot <- scatterplot +
-  geom_line(data = result_df_COM_nl, aes(x = time_period+2000, y = Predicted_Mean), color = "blue") +
+  geom_line(data = result_df_COM_nl, aes(x = time_period+2000, y = Predicted_Mean), color = "blue", size =1) +
   geom_ribbon(data = result_df_COM_nl, aes(x = time_period+2000, ymin = Lower_Bound, ymax = Upper_Bound), fill = "blue", alpha = 0.2) +
   
   # Customize plot labels and appearance
-  labs(title = "Non-linear time trend - 4 knots (specified 2000, 2013, 2016, 2021)",
-       x = "Year",
-       y = "Prevalence (per 10,000 total births)") +
+  labs( x = "Year",
+        y = "Total birth prevalence per 10,000 total births") +
   scale_x_continuous(
     breaks = seq(2000,2021, by = 1),
     labels = seq (2000, 2021, by = 1))+
+  ylim(0,30)+
   theme_minimal()+
   theme(text = element_text(size=20))
 
-
+lineplot
 ############## 8. Modelling total birth prevalences by maternal age ###########
 
 ## breakdown counts for sliccd and NRS by age are found in merged_data_total_births
@@ -1501,6 +1488,7 @@ lineplot <- scatterplot +
   ylim(0, 30)+
   theme(text = element_text(size=20))
 
+
 #### b. assuming non-linear time trend -----------------------------------------
 
 ## 3 knots (RCS)
@@ -2145,7 +2133,7 @@ HB_LB_vglm1summary_tbl <- vglm1summary_tbl%>%
   mutate(estimate_CI = paste0(Coefficients_Est," (", Lower, ", ", Upper,")"))%>%
   mutate(pRR_CI = paste0(pRR," (", vglm1summary_tbl$pRR_CI_lower, ", ", pRR_CI_upper,")"))
 
-########## plotting MA predicted LB prevalence -------------------------------------
+########## plotting HB predicted LB prevalence -------------------------------------
 
 ## For birth prevalence 
 
@@ -2296,7 +2284,7 @@ print(LB_HB_result_df_vglm1)
 HB_group_data_bytime <- HB_group_data_bytime%>%
   mutate(predicted_mean = LB_HB_result_df_vglm1$Predicted_Mean, lower_bound = LB_HB_result_df_vglm1$Lower_Bound, upper_bound = LB_HB_result_df_vglm1$Upper_Bound)
 
-### plotting predicted prevalence per year + SIMD
+### plotting predicted prevalence per year + HB 
 
 ggplot(HB_group_data_bytime, aes(x = time_period+2000, y = totalbirth_prevalence, group = healthboard_of_residence))+
   geom_line(aes(colour = healthboard_of_residence), alpha = 0.3, 
