@@ -2528,11 +2528,30 @@ sex_LB_result_df_vglm1 <- data.frame(
   Upper_Bound = (upper_bound / SEX_group_data_bytime$count_denom) * 10000,
   birth_prev = (SEX_group_data_bytime$count_sliccd / SEX_group_data_bytime$count_denom) * 10000  # Include prevs in the result_df
 )
+
 print(sex_LB_result_df_vglm1)
+
+## figure S3
+
 SEX_group_data_bytime <- SEX_group_data_bytime%>%
   mutate(predicted_mean = sex_LB_result_df_vglm1$Predicted_Mean, lower_bound = sex_LB_result_df_vglm1$Lower_Bound, upper_bound = sex_LB_result_df_vglm1$Upper_Bound)
 
-
+ggplot(SEX_group_data_bytime, aes(x = time_period+2000, y = totalbirth_prevalence, group = sex_2))+
+  geom_line(aes(colour = sex_2), alpha = 0.3, 
+            size=0.5)+
+  geom_line(aes(colour = sex_2, y = predicted_mean))+
+  geom_ribbon(aes(ymin = lower_bound, ymax = upper_bound, fill = sex_2), alpha = 0.3)+
+  geom_point(aes(colour = sex_2), size=3)+
+  labs(x = "Year",
+       y = "Live birth prevalence per 10,000 live births",
+       colour = "Infant sex",
+       fill = "Infant sex")+
+  scale_colour_manual(values = c("purple", "orange"))+
+  scale_fill_manual(values = c("purple", "orange"))+
+  ylim(0,20)+
+  theme_minimal()+
+  theme(text = element_text(size=25))+
+  theme(strip.text.y = element_blank() )
 
 ## 7. final model - live birth prevalence -----------------------------------
 
