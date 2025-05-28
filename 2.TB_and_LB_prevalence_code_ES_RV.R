@@ -1197,7 +1197,7 @@ print(result_df_vglm1)
 HB_group_data_bytime <- HB_group_data_bytime%>%
   mutate(predicted_mean = result_df_vglm1$Predicted_Mean, lower_bound = result_df_vglm1$Lower_Bound, upper_bound = result_df_vglm1$Upper_Bound)
 
-#### plot HB data predicted by time (Figure 4c) ---------------------------------------------
+#### plot HB data predicted by time [Figure S2a] ---------------------------------------------
 HB_plot3 <- ggplot(HB_group_data_bytime, aes(x = time_period+2000, y = totalbirth_prevalence, group = healthboard_of_residence))+
   geom_line(aes(colour = healthboard_of_residence, y = predicted_mean))+
   geom_ribbon(aes(ymin = lower_bound, ymax = upper_bound, fill = healthboard_of_residence), alpha = 0.3)+
