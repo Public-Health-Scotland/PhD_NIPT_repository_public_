@@ -2315,7 +2315,7 @@ ggplot(HB_group_data_bytime, aes(x = time_period+2000, y = totalbirth_prevalence
   theme(strip.text.y = element_blank() )
 
 
-## Final plot for manuscript 
+## Final plot for manuscript [Figure S2b]
 
 hb_PLOT_4 <- ggplot(HB_group_data_bytime, aes(x = time_period+2000, y = totalbirth_prevalence, group = healthboard_of_residence))+
   geom_line(aes(colour = healthboard_of_residence), alpha = 0.3, 
