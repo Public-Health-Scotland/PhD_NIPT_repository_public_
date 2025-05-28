@@ -267,7 +267,8 @@ result_df_COM1 <- data.frame(
 print(result_df_COM1)
 
 
-# Figure S1 (appendix)
+# Figure S1 (appendix) ---------------------------------------------
+
 prevalence_data_per_year$birth_prev <- prevalence_data_per_year$prevalence
 
 scatterplot <- ggplot(prevalence_data_per_year, aes(x = time_period + 2000, y = birth_prev)) +#axis from 2000-2021
@@ -1587,8 +1588,7 @@ MA_LB_vglm1summary_tbl <- MA_LB_vglm1summary_tbl%>%
   mutate(pRR_CI = paste0(pRR," (", MA_LB_vglm1summary_tbl$pRR_CI_lower, ", ", pRR_CI_upper,")"))
 
 
-##########plotting MA predicted prevalence (Figure 3d)####################
-
+######## plotting MA predicted prevalence (Figure 3d) --------------------------
 ## For birth prevalence 
 
 # Predict values
@@ -1738,7 +1738,7 @@ MA_group_data_bytime <- MA_group_data_bytime%>%
 
 ### plotting predicted prevalence per year + MA
 
-## Final plot for manuscript (Figure 4d)
+##### Final plot for manuscript (Figure 4d) -----------------------------------
 
 ma_plot4 <- ggplot(MA_group_data_bytime, aes(x = time_period+2000, y = totalbirth_prevalence, group = age_category))+
   geom_line(aes(colour = age_category, y = predicted_mean))+
@@ -1861,12 +1861,12 @@ LB_SIMD_result_df_vglm1 <- data.frame(
   Upper_Bound = (upper_bound / SIMD_group_data$count_denom) * 10000,
   birth_prev = (SIMD_group_data$count_sliccd / SIMD_group_data$count_denom) * 10000  # Include prevs in the result_df
 )
+
+
 print(LB_SIMD_result_df_vglm1)
 
-#### 
 
-
-########## plot this data --------------------------------------------------------
+### plot this data 
 
 ggplot(LB_SIMD_result_df_vglm1, aes(x = maternal_simd_quintile, y = birth_prev)) +
   geom_line(aes(y = Predicted_Mean, group = 1), colour = "purple")+
@@ -1986,7 +1986,7 @@ print(LB_SIMD_result_df_vglm1)
 LB_SIMD_group_data_bytime <- SIMD_group_data_bytime%>%
   mutate(predicted_mean = LB_SIMD_result_df_vglm1$Predicted_Mean, lower_bound = LB_SIMD_result_df_vglm1$Lower_Bound, upper_bound = LB_SIMD_result_df_vglm1$Upper_Bound)
 
-#### plotting predicted prevalence per year + SIMD (Figure 4d)------------------------------------
+#### plotting predicted prevalence per year + SIMD (Figure 4d)------------------
 
 ggplot(LB_SIMD_group_data_bytime, aes(x = time_period+2000, y = totalbirth_prevalence, group = maternal_simd_quintile))+
   geom_line(aes(colour = maternal_simd_quintile), alpha = 0.3, 
@@ -2303,7 +2303,7 @@ ggplot(HB_group_data_bytime, aes(x = time_period+2000, y = totalbirth_prevalence
   theme(strip.text.y = element_blank() )
 
 
-## Final plot for manuscript [Figure S2b]
+#### Final plot  [Figure S2b] -----------------------
 
 hb_PLOT_4 <- ggplot(HB_group_data_bytime, aes(x = time_period+2000, y = totalbirth_prevalence, group = healthboard_of_residence))+
   geom_line(aes(colour = healthboard_of_residence), alpha = 0.3, 
