@@ -18,7 +18,7 @@
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-# Tue May  6 13:38:22 2025 ------------------------------
+# Wed May  28 13:12 2025 ------------------------------
 
 # Authors: Elinor Sebire and Rute Vieira 
 
@@ -30,27 +30,27 @@
 
 ######## 1. Load packages ###########################
 
-library(readxl)      ##for reading in excel files
-library(writexl)     ##for writing to excel files 
+#library(readxl)      ##for reading in excel files
+#library(writexl)     ##for writing to excel files 
 library(dplyr)       ##for working with 'tidy' data
-library(stringr)     ##for working with strings
-library(janitor)     ##for rounding 0.5 upwards and clean_names function
-library(magrittr)    ##for %<>% operator
+#library(stringr)     ##for working with strings
+#library(janitor)     ##for rounding 0.5 upwards and clean_names function
+#library(magrittr)    ##for %<>% operator
 library(ggplot2)
-library(epiDisplay)
-library(reshape2)
+#library(epiDisplay)
+#library(reshape2)
 library(tidyr)
-library(tidyverse)
+#library(tidyverse)
 library(data.table)
 library(epitools)    ## for estimating 95% CIs for prevalence
 library(glmmTMB)     ## for modelling the data
 library(VGAM)
-library(Hmisc)
-library(MatrixModels)
-library(mvtnorm)
-library(quantreg)
+#library(Hmisc)
+#library(MatrixModels)
+#library(mvtnorm)
+#library(quantreg)
 library(rms)         ## for restricted cubic splines 
-library(gridExtra) 
+#library(gridExtra) 
 
 
 ######### 2. Read in the data ########################
@@ -74,7 +74,6 @@ wd_phd <- "/PHI_conf/NIPT_evaluation_anon/Data/wd_phd/"
 objective1 <- "/PHI_conf/NIPT_evaluation_anon/Data/wd_phd/Objective1/"
 
 objective2 <- "/PHI_conf/NIPT_evaluation_anon/Data/wd_phd/Objective2/"
-
 
 
 
@@ -132,25 +131,15 @@ sliccd_numerator_data <- sliccd_ds_extract%>%
 ## replace NAs with Unknown in SIMD and Healthboard columns
 
 # SIMD
-#str(sliccd_numerator_data$maternal_simd_quintile) # check
 sliccd_numerator_data$maternal_simd_quintile <- as.character(sliccd_numerator_data$maternal_simd_quintile) 
 sliccd_numerator_data <- sliccd_numerator_data%>%
   mutate( maternal_simd_quintile = replace_na(maternal_simd_quintile, "Unknown"))
 sliccd_numerator_data$maternal_simd_quintile <- as.factor(sliccd_numerator_data$maternal_simd_quintile)
 
 # Healthboard 
-#str(sliccd_numerator_data$healthboard_of_residence) # check
 sliccd_numerator_data <- sliccd_numerator_data%>%
   mutate(healthboard_of_residence = replace_na(healthboard_of_residence, "Unknown"))
 sliccd_numerator_data$healthboard_of_residence<- as.factor(sliccd_numerator_data$healthboard_of_residence)
-
-
-## check structure of variables in aggregated/numerator dataset
-#str(sliccd_numerator_data) #check 
-
-## check ##
-#sliccd_numerator_data <- sliccd_numerator_data %>%
-#  arrange(maternal_age_at_conception)
 
 
 #### Prepare NRS dataset - denominator data for total births
@@ -160,14 +149,11 @@ NRS_total_births <- NRS_total_births%>%
   mutate(maternal_simd_quintile = recode(maternal_simd_quintile,
                                          "1 (most deprived)" = "1",
                                          "5 (least deprived)" = "5"))
-#str(NRS_total_births)
 
 ### sort out structure and values for specific variables in the dataset - characters/factors 
 NRS_total_births$age_category <- as.factor(NRS_total_births$age_category)
 NRS_total_births$healthboard_of_residence <- as.factor(NRS_total_births$healthboard_of_residence)
 NRS_total_births$maternal_simd_quintile <- as.factor(NRS_total_births$maternal_simd_quintile)
-#str(NRS_total_births)
-
 
 
 #### Merge SLiCCD and NRS  datasets
@@ -184,7 +170,7 @@ merged_data_total_births <- merged_data_total_births%>%
 
 ############## 6. Descriptive statistics - total birth prevalences ##################
 
-## total births in both sliccd and denom data ## WHERE IS CALCULATION OF 95% CI????
+## total births in both sliccd and denom data
 total_counts <- merged_data_total_births%>%
   summarise(total_denom = sum(count_denom, na.rm = TRUE),
             total_sliccd = sum(count_sliccd, na.rm = TRUE))
@@ -222,32 +208,7 @@ prevalence_data_per_year <- total_counts_per_year%>%
   ungroup()
 prevalence_data_per_year
 
-# saving the prevalences to an xlsx file 
-write_xlsx(prevalence_data_per_year, paste0(objective1,"prev_data_total_births_final.xlsx"))
-
 # plotting prev data per year
-
-# version1
-
-prevalence_data_per_year%>%
-  ggplot(aes(x = factor(time_period), y = prevalence, group = 1))+  
-  # geom_rect(aes(xmin = '2020', xmax = '2021', ymin = 0, ymax = 34),#to use for final models
-  #          fill = "light grey", alpha = 0.1)+
-  #annotate("text", x = '2020', y = 32, label = 'Implementation
-  #of NIPT', vjust = 1, hjust = 0.25)+
-  geom_point(colour = "steel blue")+
-  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2, colour = "steel blue")+
-  geom_line(colour = "cornflower blue")+  
-  geom_line(aes(y = mean(prevalence), group = 1), colour = "red", alpha = 0.2)+
-  labs(title = "Total birth prevalence of singleton pregnancies with DS in Scotland between 2000 and 2021", x = "Year (of pregnancy end)", y = "Total birth prevalence, per 10,000 births (95% CI)")+
-  ##add shaded area to highlight the implementation of NIPT
-  theme_minimal()+
-  # scale_x_continuous(limits = c(2000,2021), breaks = c(2000:2021))
-  ylim(0,30)
-
-#version2
-
-#colours #332288","#AA4499","#6699CC"#888888", "#DDCC77
 
 prevalence_data_per_year%>%
   ggplot(aes(x = factor(time_period), y = prevalence, group = 1))+  
@@ -316,7 +277,9 @@ result_df_COM1 <- data.frame(
 )
 print(result_df_COM1)
 
-# scatterplot of original data
+
+
+# Figure 1
 prevalence_data_per_year$birth_prev <- prevalence_data_per_year$prevalence
 
 scatterplot <- ggplot(prevalence_data_per_year, aes(x = time_period + 2000, y = birth_prev)) +
@@ -336,8 +299,6 @@ lineplot <- scatterplot +
     labels = seq (2000, 2021, by = 1))+
   theme_minimal()+
   theme(text = element_text(size=20))
-
-
 
 
 #### b. assuming non-linear time trend ################
@@ -376,7 +337,7 @@ summary(birth_prev_nonlin1.5)
 
 ### Piecewise Regression Model
 
-### SUB SECTION OF DATA FROM 2000-2012 (time period 1) and running a Poisson regression with linaer trend to look at the trend in this period only.
+### SUB SECTION OF DATA FROM 2000-2012 (time period 1) and running a Poisson regression with linear trend to look at the trend in this period only.
 
 period_1 <- prevalence_data_per_year%>%
   filter(between(time_period, 0, 12))
@@ -408,7 +369,7 @@ summary(PW_period3)
 round(exp(confint(PW_period3)), 3)
 
 
-## PLOT TO BE USED IN CHAPTER AND PAPER -- specified 4 knots (0,13,16,21)
+## Figure S1 -- specified 4 knots (0,13,16,21)
 
 # Predict values
 births_COMpoissonm1 <- data.frame(time_period = newx, total_denom = prevalence_data_per_year$total_denom)
@@ -438,6 +399,7 @@ prevalence_data_per_year$birth_prev <- (prevalence_data_per_year$total_sliccd / 
 
 scatterplot <- ggplot(prevalence_data_per_year, aes(x = time_period + 2000, y = birth_prev)) +
   geom_point(aes(y = birth_prev), shape = 1, size = 2, color = "black") 
+
 # Add fitted values and confidence intervals as blue lines
 lineplot <- scatterplot +
   geom_line(data = result_df_COM_nl, aes(x = time_period+2000, y = Predicted_Mean), color = "blue") +
@@ -532,9 +494,6 @@ vglm1summary_tbl <- vglm1summary_tbl%>%
   mutate(estimate_CI = paste0(Coefficients_Est," (", Lower, ", ", Upper,")"))%>%
   mutate(pRR_CI = paste0(pRR," (", vglm1summary_tbl$pRR_CI_lower, ", ", pRR_CI_upper,")"))
 
-### saving table in objective 1 folder
-write_xlsx(vglm1summary_tbl, paste0(objective1,"MA_prev_summarytable.xlsx") )
-
 ## AIC of model (for info - not reported)
 AIC(vglm1)
 
@@ -566,9 +525,6 @@ result_df_vglm1 <- data.frame(
 )
 print(result_df_vglm1)
 
-### save this file - predicted mean prev per maternal age group
-
-write_xlsx(result_df_vglm1, paste0(objective2,"total_prev_vglm1_output_MA.xlsx") )
 
 ######## plot this data - predicted TB prev per MA 
 ggplot(result_df_vglm1, aes(x = age_category, y = birth_prev)) +
@@ -581,7 +537,7 @@ ggplot(result_df_vglm1, aes(x = age_category, y = birth_prev)) +
   theme(text = element_text(size=25))+
   theme_minimal()
 
-### final MA model prevalence plot for manuscript ####
+### final MA model prevalence plot for manuscript (Figure 3a) ####
 
 MA_plot1 <- ggplot(result_df_vglm1, aes(x = age_category, y = birth_prev)) +
   geom_line(aes(y = birth_prev, group = 1), colour = "steel blue")+
@@ -653,19 +609,6 @@ MA_model_with_time <- MA_model_with_time%>%
   mutate(Estimate_CI = CI_model_with_time_summary$estimate_CI)%>%
   mutate(pRR_CI = CI_model_with_time_summary$pRR_CI)
 
-# save out in excel 
-write_xlsx(MA_model_with_time, paste0(objective2,"MA_prev_with_time_output.xlsx") )
-### plot observed prevalence over time with MA ---------------------------------------------------
-ggplot(MA_group_data_bytime, aes(x = time_period+2000, y = totalbirth_prevalence, color = age_category, group = age_category))+
-  geom_line(size=0.5)+
-  geom_point(size=1)+
-  labs(title = "Prevalence of singleton pregnancies with DS per maternal age group over time",
-       x = "Year (of pregnancy end)",
-       y = "Prevalence of DS (per 10,000 total births)",
-       colour = "Maternal age group")+
-  theme_minimal()
-
-
 ### plot observed and predicted prev per year - MA + time ----------------------------------------
 
 # Predict values
@@ -695,7 +638,7 @@ print(result_df_vglm1)
 MA_group_data_bytime <- MA_group_data_bytime%>%
   mutate(predicted_mean = result_df_vglm1$Predicted_Mean, lower_bound = result_df_vglm1$Lower_Bound, upper_bound = result_df_vglm1$Upper_Bound)
 
-## final MA + time plot 
+## final MA + time plot (Figure 4a)
 
 MA_plot2 <- ggplot(MA_group_data_bytime, aes(x = time_period+2000, y = totalbirth_prevalence, group = age_category))+
   geom_point(aes(colour = age_category),size=3)+
@@ -795,8 +738,6 @@ vglm1summary_tbl <- vglm1summary_tbl%>%
   mutate(estimate_CI = paste0(Coefficients_Est," (", Lower, ", ", Upper,")"))%>%
   mutate(pRR_CI = paste0(pRR," (", vglm1summary_tbl$pRR_CI_lower, ", ", pRR_CI_upper,")"))
 
-# saving final table in excel file
-write_xlsx(vglm1summary_tbl, paste0(objective1,"SIMD_unadjusted_model1.xlsx") )
 
 ### plot predicted DS prevalence - by SIMD --------------------
 ## For total birth prevalence 
@@ -832,7 +773,7 @@ ggplot(result_df_vglm1, aes(x = maternal_simd_quintile, y = birth_prev)) +
   theme_minimal()+
   theme(text = element_text(size=20))
 
-## final unadjusted SIMD plot ----------------------------------------------------
+## final unadjusted SIMD plot - Figure 3b ----------------------------------------------------
 
 SIMD_PLOT1<- ggplot(result_df_vglm1, aes(x = maternal_simd_quintile, y = birth_prev)) +
   geom_line(aes(y = birth_prev, group = 1), colour = "steel blue")+
@@ -902,9 +843,6 @@ SIMD_model_with_time <- SIMD_model_with_time%>%
   mutate(Estimate_CI = CI_model_with_time_summary$estimate_CI)%>%
   mutate(pRR_CI = CI_model_with_time_summary$pRR_CI)
 
-#### save out in excel 
-write_xlsx(SIMD_model_with_time, paste0(objective2,"SIMD_prev_with_time_output.xlsx") )
-
 ######### plot change in prevalence over time with SIMD - crude ----------------
 
 ggplot(SIMD_group_data_bytime, aes(x = time_period+2000, y = totalbirth_prevalence, color = maternal_simd_quintile, group = maternal_simd_quintile))+
@@ -917,7 +855,7 @@ ggplot(SIMD_group_data_bytime, aes(x = time_period+2000, y = totalbirth_prevalen
   theme_minimal()
 
 
-#### predicted prev per year 
+#### plot of predicted prev per year - Figure 4b
 
 # Predict values
 SIMD_time <- data.frame(time_period = SIMD_group_data_bytime$time_period, maternal_simd_quintile = SIMD_group_data_bytime$maternal_simd_quintile, count_sliccd = SIMD_group_data_bytime$count_sliccd, count_denom = SIMD_group_data_bytime$count_denom)
@@ -1006,18 +944,6 @@ HB_group_data <- HB_group_data%>%
 HB_group_data <- HB_group_data%>%
   mutate(totalbirth_prevalence = count_sliccd/count_denom * 10000)
 
-##### plot crude TB prevalence by HB
-
-ggplot(HB_group_data, aes(x=healthboard_of_residence, y = totalbirth_prevalence, group = healthboard_of_residence))+
-  geom_bar(stat="identity", fill = "steel blue")+
-  labs(title = "The total birth prevalence of babies with DS in Scotland by maternal healthboard of residence", x = "NHS healthboard of residence", y = "Total birth prevalence (per 10,000 total births)")+
-  theme_minimal()+
-  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=0.4))+
-  ylim(0,30)+
-  theme_minimal()+
-  theme(text = element_text(size=20))
-
-
 ## grouping island boards into islands label 
 
 HB_group_data<- HB_group_data%>%
@@ -1048,22 +974,6 @@ HB_group_data <- HB_group_data%>%
 HB_group_data$healthboard_of_residence<- as.factor(HB_group_data$healthboard_of_residence)
 str(HB_group_data)
 
-### plotting crude prev and CIs for the health boards 
-
-ggplot(HB_group_data, aes(x=healthboard_of_residence, y = totalbirth_prevalence, group = healthboard_of_residence))+
-  geom_bar(stat="identity", fill = "steel blue")+
-  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), colour = "purple", width = 0.6)+
-  labs(title = "The total birth prevalence of babies with DS in Scotland by maternal healthboard of residence", x = "NHS healthboard of residence", y = "Total birth prevalence (per 10,000 total births)")+
-  theme_minimal()+
-  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=0.4))+
-  ylim(0,30)+
-  theme_minimal()+
-  theme(text = element_text(size=20))
-
-### saving out this dataset as excel file 
-
-write_xlsx(HB_group_data, paste0(objective1,"total_births_prev_healthboard.xlsx"))
-
 
 ## Unadjusted HB model------------------------------------------------
 HB_group_data$healthboard_of_residence = relevel(HB_group_data$healthboard_of_residence, ref = "NHS Ayrshire and Arran")#reference HB is ayrshire and arran
@@ -1072,25 +982,21 @@ vglm1<-vglm(HB_group_data$count_sliccd ~ HB_group_data$healthboard_of_residence 
             data=HB_group_data)
 
 ##summary of model
-
 vglm1summary <- summary(vglm1)
-
 show.summary.vglm(vglm1summary)
-
 vglm1summary <- summaryvglm(vglm1)
 
 ###### creating summary table with PRR and CIs --------------------------
 
 ##CIs
-
 CI <- data.frame(confint(vglm1))
 
 ###create summary table
 
 vglm1summary_tbl <- data.frame (coef(vglm1))
-
 vglm1summary_tbl <- vglm1summary_tbl%>%
   mutate(Lower = CI$X2.5.., Upper = CI$X97.5.. )
+
 ## rename table columns 
 colnames(vglm1summary_tbl)[1] <- "Coefficients_Est"
 
@@ -1108,8 +1014,8 @@ vglm1summary_tbl <- vglm1summary_tbl[c("Coefficients", "Coefficients_Est", "Lowe
 ##add in pRR for each coefficient and CI
 vglm1summary_tbl <- vglm1summary_tbl%>%
   mutate(pRR = exp(coef(vglm1)), pRR_CI_lower = exp(Lower), PRR_CI_upper = exp(Upper))
-### add in p values
 
+### add in p values
 vglm1summary_tbl<- vglm1summary_tbl%>%
   mutate("P value" = coef(summary(vglm1))[,'Pr(>|z|)'])
 
@@ -1117,9 +1023,7 @@ vglm1summary_tbl<- vglm1summary_tbl%>%
 
 vglm1summary_tbl$pRR_CI_lower <- round(vglm1summary_tbl$pRR_CI_lower, 2)
 vglm1summary_tbl$pRR_CI_upper <- round(vglm1summary_tbl$PRR_CI_upper, 2)
-
 vglm1summary_tbl$pRR <-round(vglm1summary_tbl$pRR,2)
-
 vglm1summary_tbl$`P value` <-round(vglm1summary_tbl$`P value`,3)
 vglm1summary_tbl$Coefficients_Est <-round(vglm1summary_tbl$Coefficients_Est,2)
 vglm1summary_tbl$Lower <-round(vglm1summary_tbl$Lower,2)
@@ -1131,13 +1035,9 @@ vglm1summary_tbl <- vglm1summary_tbl%>%
   mutate(estimate_CI = paste0(Coefficients_Est," (", Lower, ", ", Upper,")"))%>%
   mutate(pRR_CI = paste0(pRR," (", vglm1summary_tbl$pRR_CI_lower, ", ", pRR_CI_upper,")"))
 
-##saving final table in excel file
-
-write_xlsx(vglm1summary_tbl, paste0(objective1,"HB_unadjusted_model1.xlsx") )
 
 
-
-####### plotting predicted TB prevalence in graph - by HB --------------------
+####### plotting predicted TB prevalence in graph - by HB (Figure) --------------------
 
 ## For total birth prevalence 
 
@@ -1164,20 +1064,8 @@ result_df_vglm1 <- data.frame(
 )
 print(result_df_vglm1)
 
-##### plot unadjusted HB model -------------------------------------------------
 
-ggplot(result_df_vglm1, aes(x = healthboard_of_residence, y = birth_prev)) +
-  geom_bar(stat = "identity", fill = 'purple', alpha = 0.2)+
-  geom_point(aes(y = birth_prev), shape = 19, size = 2, color = "purple", alpha = 0.7)+
-  geom_errorbar(aes(ymin = Lower_Bound, ymax = Upper_Bound), colour = "purple", width = 0.4)+
-  labs(x = "Maternal NHS helath board of residence", y = "Total birth prevalence per 10,000 total births")+
-  ylim(0,30)+
-  coord_flip()+
-  theme(text = element_text(size=20))+
-  theme_minimal()
-
-##### final TB prevalence of DS model for HB of residence ------------------------
-
+##### final TB prevalence of DS model for HB of residence (Figure 3c) ------------------------
 
 HB_plot1 <- ggplot(result_df_vglm1, aes(x = healthboard_of_residence, y = birth_prev)) +
   geom_bar(stat = "identity", fill = 'steel blue', alpha = 0.3)+
@@ -1210,16 +1098,14 @@ HB_group_data_bytime <- HB_group_data_bytime%>%
   filter(!healthboard_of_residence == 'Unknown')
 
 ##### ADD TOTAL BIRTH PREVALENCE COLUMN TO DATASET 
-
 HB_group_data_bytime <- HB_group_data_bytime%>%
   mutate(totalbirth_prevalence = count_sliccd/count_denom * 10000)
 
-str(HB_group_data_bytime)
+
 
 ### group island boards:
 
 ###### grouping island boards into islands label 
-
 HB_group_data_bytime<- HB_group_data_bytime%>%
   mutate(healthboard_of_residence = if_else(healthboard_of_residence %in% c('NHS Western Isles', 'NHS Orkney', 'NHS Shetland'),
                                             'NHS Island Boards',
@@ -1232,7 +1118,6 @@ HB_group_data_bytime<- HB_group_data_bytime%>%
   mutate(totalbirth_prevalence = count_sliccd/ count_denom * 10000)
 
 ########### plot total birth prev by year and health board 
-
 ggplot(HB_group_data_bytime, aes(x = factor(time_period), y = totalbirth_prevalence, color = healthboard_of_residence, group = healthboard_of_residence))+
   geom_line(size=0.5)+
   geom_point(size=1)+
@@ -1247,24 +1132,18 @@ ggplot(HB_group_data_bytime, aes(x = factor(time_period), y = totalbirth_prevale
 HB_group_data_bytime <- transform(HB_group_data_bytime, time_period = time_period - min(time_period))
 
 #### HB adjusted by (4 knots) time trend 
-
 model_with_time <- glmmTMB(count_sliccd ~ healthboard_of_residence + rcs(time_period,knots2) +offset(log(count_denom)),
                            family = compois, data = HB_group_data_bytime)
 
 ## summary of the model 
-
 summary (model_with_time)
 model_time_summ<- summary(model_with_time)
 
 
 ## dataset of the summary
-
 HB_model_with_time <- data.frame(model_time_summ$coefficients$cond)
-
 setDT(HB_model_with_time, keep.rownames = TRUE)
-
 HB_model_with_time$Estimate<- round(HB_model_with_time$Estimate, 5)
-
 HB_model_with_time$Pr...z..<- round(HB_model_with_time$Pr...z.., 3)
 
 ###remove unneeded columns 
@@ -1274,14 +1153,11 @@ HB_model_with_time$z.value <- NULL
 
 ## CIs and rounded values
 CI_model_with_time_summary <- data.frame(round(confint(model_with_time), 3))
-
 CI_model_with_time_summary <- CI_model_with_time_summary%>%
   mutate(pRR = exp(Estimate), CI_lower = exp(X2.5..), CI_upper = exp(X97.5..))
-
 CI_model_with_time_summary$pRR <- round(CI_model_with_time_summary$pRR, 3)
 CI_model_with_time_summary$CI_lower <- round(CI_model_with_time_summary$CI_lower, 5)
 CI_model_with_time_summary$CI_upper <- round(CI_model_with_time_summary$CI_upper, 5)
-
 CI_model_with_time_summary <- CI_model_with_time_summary%>%
   mutate(estimate_CI = paste0(Estimate," (", X2.5.., ", ", X97.5..,")"))%>%
   mutate(pRR_CI = paste0(pRR," (", CI_lower, ", ", CI_upper,")"))
@@ -1291,11 +1167,6 @@ CI_model_with_time_summary <- CI_model_with_time_summary%>%
 HB_model_with_time <- HB_model_with_time%>%
   mutate(Estimate_CI = CI_model_with_time_summary$estimate_CI)%>%
   mutate(pRR_CI = CI_model_with_time_summary$pRR_CI)
-
-#### save out in excel 
-
-write_xlsx(HB_model_with_time, paste0(objective2,"HB_prev_with_time_output.xlsx") )
-
 
 #### calculating predicted prev per year by health board ---------------------
 
@@ -1326,9 +1197,7 @@ print(result_df_vglm1)
 HB_group_data_bytime <- HB_group_data_bytime%>%
   mutate(predicted_mean = result_df_vglm1$Predicted_Mean, lower_bound = result_df_vglm1$Lower_Bound, upper_bound = result_df_vglm1$Upper_Bound)
 
-#### plot HB data predicted by time ---------------------------------------------
-
-
+#### plot HB data predicted by time (Figure 4c) ---------------------------------------------
 HB_plot3 <- ggplot(HB_group_data_bytime, aes(x = time_period+2000, y = totalbirth_prevalence, group = healthboard_of_residence))+
   geom_line(aes(colour = healthboard_of_residence, y = predicted_mean))+
   geom_ribbon(aes(ymin = lower_bound, ymax = upper_bound, fill = healthboard_of_residence), alpha = 0.3)+
@@ -1353,14 +1222,12 @@ HB_plot3
 ### 12. Full model ----------------------------------------------------------
 
 ## model to include time (non-linear), MA, SIMD and healthboard 
-
 ## using original dataset with full breakdown
 
 #### change time to 0-21:
 merged_data_total_births <- transform(merged_data_total_births, time_period = time_period - min(time_period))
 
 ## remove unknown category for each variable 
-
 final_model_data <- merged_data_total_births%>%
   group_by(time_period, age_category, maternal_simd_quintile, healthboard_of_residence)%>%
   summarise(count_sliccd = sum(count_sliccd, na.rm = TRUE),
@@ -1378,14 +1245,12 @@ final_model_data <- final_model_data%>%
   filter(!maternal_simd_quintile == 'Unknown')
 
 ###### grouping island boards into islands label 
-
 final_model_data<- final_model_data%>%
   mutate(healthboard_of_residence = if_else(healthboard_of_residence %in% c('NHS Western Isles', 'NHS Orkney', 'NHS Shetland'),
                                             'NHS Island Boards',
                                             healthboard_of_residence))
 
 ## final model dataset 
-
 final_model_data<- final_model_data%>%
   group_by(time_period, age_category,maternal_simd_quintile ,healthboard_of_residence)%>%
   summarise(count_sliccd = sum(count_sliccd, na.rm = TRUE), count_denom = sum(count_denom, na.rm = TRUE), .groups = 'drop')%>%
@@ -1396,58 +1261,39 @@ full_model <- glmmTMB(count_sliccd ~ age_category + maternal_simd_quintile +heal
                       family = compois, data = final_model_data)
 
 ## summary of the model 
-
 summary (full_model)
 
 ### table of model summary 
-
 fullmodel_summ<- summary(full_model)
-
 round(fullmodel_summ$coefficients$cond, 2)
-
 full_model_tbl <- data.frame(fullmodel_summ$coefficients$cond)
-
 setDT(full_model_tbl, keep.rownames = TRUE)
-
 full_model_tbl$Estimate<- round(full_model_tbl$Estimate, 2)
-
 full_model_tbl$P_value<- round(full_model_tbl$Pr...z.., 3)
 
-
 ###remove unneeded columns 
-
 full_model_tbl$Std..Error <- NULL
 full_model_tbl$z.value <- NULL
 
 ### pRR
-
 full_model_tbl <- full_model_tbl%>%
   mutate(pRR = exp(Estimate))
-
 round(confint(full_model), 4)
-
 CI_model_with_time_summary <- data.frame(confint(full_model))
-
 CI_model_with_time_summary <- CI_model_with_time_summary%>%
   mutate(pRR = exp(Estimate), CI_lower = exp(X2.5..), CI_upper = exp(X97.5..))
-
 CI_model_with_time_summary$pRR <- round(CI_model_with_time_summary$pRR, 2)
 CI_model_with_time_summary$CI_lower <- round(CI_model_with_time_summary$CI_lower, 2)
 CI_model_with_time_summary$CI_upper <- round(CI_model_with_time_summary$CI_upper, 2)
-
 CI_model_with_time_summary <- CI_model_with_time_summary%>%
   mutate(estimate_CI = paste0(Estimate," (", X2.5.., ", ", X97.5..,")"))%>%
   mutate(pRR_CI = paste0(pRR," (", CI_lower, ", ", CI_upper,")"))
 
-###add in CI column to summary table 
-
+###add in CI column to summary table
 full_model_tbl <- full_model_tbl%>%
   mutate(Estimate_CI = CI_model_with_time_summary$estimate_CI)%>%
   mutate(pRR_CI = CI_model_with_time_summary$pRR_CI)
 
-#### save out in excel 
-
-write_xlsx(full_model_tbl, paste0(objective2,"final_TB_model_output.xlsx") )
 
 
 ## ----------------------------------------------------------------------------
@@ -1456,11 +1302,9 @@ write_xlsx(full_model_tbl, paste0(objective2,"final_TB_model_output.xlsx") )
 ### 1. reading in denominator data and prepping the sliccd numerator data #######
 
 ##### sliccd dataset prep -------------------------------------------------------
-
 library(data.table)
 
 ##### dataset of live births only  ----------------------------------------------
-
 sliccd_ds_extract <- sliccd_ds_extract%>%
   filter(pregnancy_end_type == "Livebirth")
 
@@ -1480,124 +1324,85 @@ sliccd_ds_extract <- sliccd_ds_extract%>%
 
 sliccd_ds_extract$age_category <- as.factor(sliccd_ds_extract$age_category)
 
-str(sliccd_ds_extract$age_category)
-
 ## infant sex in sliccd 
-
 # code the sex 1,2,3 into words 
-
 sliccd_ds_extract <- sliccd_ds_extract %>%
   mutate(sex_2 = case_when(sex == 1 ~ 'Male',
                            sex == 2 ~ 'Female',
                            sex == 3 ~ 'Unknown',
                            TRUE ~ NA_character_))
 
-str(sliccd_ds_extract$sex_2)
-
 sliccd_ds_extract$sex_2 <- as.factor(sliccd_ds_extract$sex_2)
 
 #### sorting out structure and values in the dataset - characters/factors and 'unknown' groups 
-
 str(sliccd_ds_extract$pregnancy_end_type)
-
 sliccd_ds_extract$pregnancy_end_type <- as.factor(sliccd_ds_extract$pregnancy_end_type)
 
 #### numerator data 
-
 sliccd_numerator_data <- sliccd_ds_extract%>%
   group_by(time_period, age_category, maternal_simd_quintile, healthboard_of_residence, sex_2)%>%
   summarise(Count = n())
 
 #### SIMD
-
-str(sliccd_numerator_data$maternal_simd_quintile)
-
 sliccd_numerator_data$maternal_simd_quintile <- as.character(sliccd_numerator_data$maternal_simd_quintile)
-
 sliccd_numerator_data <- sliccd_numerator_data%>%
   mutate( maternal_simd_quintile = replace_na(maternal_simd_quintile, "Unknown"))
-
 sliccd_numerator_data$maternal_simd_quintile <- as.factor(sliccd_numerator_data$maternal_simd_quintile)
 
 #### healthboard of residence 
-str(sliccd_numerator_data$healthboard_of_residence)
-
 sliccd_numerator_data <- sliccd_numerator_data%>%
   mutate(healthboard_of_residence = replace_na(healthboard_of_residence, "Unknown"))
-
 sliccd_numerator_data$healthboard_of_residence<- as.factor(sliccd_numerator_data$healthboard_of_residence)
-
-str(sliccd_numerator_data)
-
 sliccd_numerator_data
 
 ##### read in denominator data for total births ---------------------------------
-
 NRS_live_births <-read.csv("/PHI_conf/NIPT_evaluation_anon/Data/cohort_2/NRS_denom_data_livebirths.csv")
 
 ### recode SIMD
-
 NRS_live_births <- NRS_live_births%>%
   mutate(maternal_simd_quintile = recode(maternal_simd_quintile,
                                          "1 (most deprived)" = "1",
                                          "5 (least deprived)" = "5"))
 
 ### re-code male/female
-
 NRS_live_births <- NRS_live_births%>%
   mutate(sex_2 = recode(sex_2,
                         "M" = "Male",
                         "F" = "Female"))
 
 ### change to variables factors 
-
 NRS_live_births$age_category <- as.factor(NRS_live_births$age_category)
-
 NRS_live_births$healthboard_of_residence <- as.factor(NRS_live_births$healthboard_of_residence)
-
 NRS_live_births$maternal_simd_quintile <- as.factor(NRS_live_births$maternal_simd_quintile)
-
 NRS_live_births$sex_2 <- as.factor(NRS_live_births$sex_2)
 
-str(NRS_live_births)
-
 ###### merge the datasets
-
 merged_data_live_births <- NRS_live_births%>%
   full_join(sliccd_numerator_data, by = c("time_period", "age_category", "maternal_simd_quintile", "healthboard_of_residence", "sex_2"))
 
 #### rename the count columns 
-
 merged_data_live_births <- merged_data_live_births%>%
   rename(count_denom = Count.x,
          count_sliccd = Count.y
   )
 
 ##### live births in both sliccd and denom data 
-
 total_counts <- merged_data_live_births%>%
   summarise(total_denom = sum(count_denom, na.rm = TRUE),
             total_sliccd = sum(count_sliccd, na.rm = TRUE))
 
 ### 2. live birth prevalence ----------------------------------------------------
-
 (total_counts$total_sliccd/ total_counts$total_denom * 10000 )
 
 ##### live birth prev per year in dataset --------------------------------------
 
 ### dataset of total counts per year 
-
 total_counts_per_year <- merged_data_live_births%>%
   group_by(time_period)%>%
   summarise(total_denom = sum(count_denom, na.rm = TRUE),
             total_sliccd = sum(count_sliccd, na.rm = TRUE))
 
-#function to calculate the prevalence and 95 CI in data using epitools
-
-## install eiptools package
-
-library(epitools)
-
+# function to calculate the prevalence and 95 CI in data using epitools
 calculate_CI<- function(total_sliccd , total_denom){
   prevalence <- (total_sliccd / total_denom)* 10000
   ci <- pois.exact(total_sliccd, pt =  total_denom, conf.level = 0.95) * 10000
@@ -1606,9 +1411,7 @@ calculate_CI<- function(total_sliccd , total_denom){
   list(prevalence = prevalence, ci_lower = ci$lower, ci_upper = ci$upper)
 }
 
-
-##dataset of LB prevalence per
-
+## dataset of LB prevalence per
 prevalence_data_per_year <- total_counts_per_year%>%
   rowwise()%>%
   mutate(ci = list(calculate_CI(total_sliccd, total_denom)),
@@ -1618,8 +1421,6 @@ prevalence_data_per_year <- total_counts_per_year%>%
          births_prev_ci = paste0(round(prevalence,2), " (", round(ci_lower, 2), "," ,round(ci_upper, 2), ")")) %>%
   ungroup()
 
-
-
 total_counts%>%
   rowwise()%>%
   mutate(ci = list(calculate_CI(total_sliccd, total_denom)),
@@ -1628,30 +1429,6 @@ total_counts%>%
          ci_upper = ci$ci_upper,
          births_prev_ci = paste0(round(prevalence,2), " (", round(ci_lower, 2), "," ,round(ci_upper, 2), ")")) %>%
   ungroup()
-
-#### saving out this dataset  as excel file 
-
-write_xlsx(prevalence_data_per_year, paste0(objective1,"prev_data_total_births_final.xlsx"))
-
-#### plotting LB prev data per year ---------------------------------------------
-
-prevalence_data_per_year%>%
-  ggplot(aes(x = factor(time_period), y = prevalence, group = 1))+  
-  # geom_rect(aes(xmin = '2020', xmax = '2021', ymin = 0, ymax = 34),#to use for final models
-  #          fill = "light grey", alpha = 0.1)+
-  #annotate("text", x = '2020', y = 32, label = 'Implementation
-  #of NIPT', vjust = 1, hjust = 0.25)+
-  geom_point(colour = "steel blue", size = 3)+
-  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.5, colour = "steel blue")+
-  geom_line(colour = "cornflower blue")+  
-  geom_line(aes(y = mean(prevalence), group = 1), colour = "red")+
-  labs( x = "Year", y = "Live birth prevalence per 10,000 live births (95% CI)")+
-  ##add shaded area to highlight the implemenation of NIPT
-  
-  theme_minimal()+
-  # scale_x_continuous(limits = c(2000,2021), breaks = c(2000:2021))
-  ylim(0,20)+
-  theme(text = element_text(size=20))
 
 ### Modelling LB prevalence per year -------------------------------------------
 
@@ -1666,9 +1443,7 @@ livebirth_prev_linear1 <- glmmTMB(total_sliccd ~ time_period +offset(log(total_d
                                   family = compois, data = prevalence_data_per_year)##total pregnancies / total NRS births 
 
 summary(livebirth_prev_linear1)
-
 round(confint(livebirth_prev_linear1), 2)
-
 round(exp(confint(livebirth_prev_linear1)), 2)
 
 #### plotting linear model ----------------------------------------------------
@@ -1698,7 +1473,7 @@ LBresult_df_COM1 <- data.frame(
 )
 print(LBresult_df_COM1)
 
-# Plotting linear model 
+# Plotting linear model (Figure 5)
 prevalence_data_per_year$livebirth_prev <- (prevalence_data_per_year$total_sliccd / prevalence_data_per_year$total_denom) * 10000
 
 # Scatterplot of original data
@@ -1743,15 +1518,11 @@ livebirth_prev_nonlin1_3 <- glmmTMB(total_sliccd ~ rcs(time_period,4) +offset(lo
                                     family = compois, data = prevalence_data_per_year)##total pregnancies / total NRS births 
 
 summary(livebirth_prev_nonlin1_3)
-
 round(confint(livebirth_prev_nonlin1_3), 2)
 round(exp(confint(livebirth_prev_nonlin1_3)), 2)
 
 ###3. Livebirth prevalence of DS and maternal age  -----------------------------
-
-
 ### dataset with maternal age group and LB prevalence per age group 
-
 
 LB_MA_group_data <- merged_data_live_births%>%
   group_by(age_category)%>%
@@ -1781,39 +1552,20 @@ LB_MA_group_data <- LB_MA_group_data%>%
          births_prev_ci = paste0(round(prevalence,2), " (", round(ci_lower, 2), "," ,round(ci_upper, 2), ")")) %>%
   ungroup()
 
-
-##### plot LB prevalence by age category 
-
-ggplot(LB_MA_group_data, aes(x=age_category, y = livebirth_prevalence))+
-  geom_line(group =1, colour = "purple")+
-  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.6, colour = "purple")+
-  geom_point(stat="identity", fill = "black")+
-  labs(x = "Maternal age group (yrs)", y = "Live birth prevalence per 10,000 live births")+
-  ylim(0,50)+
-  theme_minimal()+
-  theme(text = element_text(size=20))
-
 ##### model of age and prevalence model - VGLM #########################
-
-
 LB_vglm1<-vglm(LB_MA_group_data$count_sliccd ~ LB_MA_group_data$age_category, poissonff(bred=TRUE), offset=log(count_denom), 
             data=LB_MA_group_data)
 
 LB_vglm1summary <- summary(LB_vglm1)
-
 show.summary.vglm(LB_vglm1summary)
-
-
 LB_vglm1summary <- summaryvglm(LB_vglm1)
-
 CI <- data.frame(confint(LB_vglm1))
 
 ###create summary table
-
 MA_LB_vglm1summary_tbl <- data.frame (coef(LB_vglm1))
-
 MA_LB_vglm1summary_tbl <- MA_LB_vglm1summary_tbl%>%
   mutate(Lower = CI$X2.5.., Upper = CI$X97.5.. )
+
 ## rename table columns 
 colnames(MA_LB_vglm1summary_tbl)[1] <- "Coefficients_Est"
 
@@ -1846,10 +1598,8 @@ MA_LB_vglm1summary_tbl <- MA_LB_vglm1summary_tbl%>%
   mutate(estimate_CI = paste0(Coefficients_Est," (", Lower, ", ", Upper,")"))%>%
   mutate(pRR_CI = paste0(pRR," (", MA_LB_vglm1summary_tbl$pRR_CI_lower, ", ", pRR_CI_upper,")"))
 
-write_xlsx(MA_LB_vglm1summary_tbl, paste0(objective1,"predicted_livebirthprev_MA.xlsx") )
 
-
-##########plotting MA predicted prevalence ####################
+##########plotting MA predicted prevalence (Figure 3d)####################
 
 ## For birth prevalence 
 
@@ -1875,8 +1625,6 @@ LB_MA_result_df_vglm1 <- data.frame(
   birth_prev = (LB_MA_group_data$count_sliccd / LB_MA_group_data$count_denom) * 10000  # Include prevs in the result_df
 )
 print(LB_MA_result_df_vglm1)
-
-#### 
 
 
 ######## plot this data --------------------------------------------------------
@@ -1972,11 +1720,6 @@ LB_MA_model_with_time<- MA_model_with_time%>%
   mutate(pRR_CI = CI_model_with_time_summary$pRR_CI)
 
 
-#### save out in excel 
-
-write_xlsx(LB_MA_model_with_time, paste0(objective2,"LB_model_MA_with_time.xlsx") )
-
-
 ####### plotting maternal age and time ---------------------------------------------
 
 # Predict values
@@ -2002,40 +1745,12 @@ MA_LB_TIME_result_df_vglm1 <- data.frame(
   birth_prev = (MA_group_data_bytime$count_sliccd / MA_group_data_bytime$count_denom) * 10000  # Include prevs in the result_df
 )
 
-print(MA_LB_TIME_result_df_vglm1)
-
 MA_group_data_bytime <- MA_group_data_bytime%>%
   mutate(predicted_mean = MA_LB_TIME_result_df_vglm1$Predicted_Mean, lower_bound = MA_LB_TIME_result_df_vglm1$Lower_Bound, upper_bound = MA_LB_TIME_result_df_vglm1$Upper_Bound)
 
 ### plotting predicted prevalence per year + MA
 
-ggplot(MA_group_data_bytime, aes(x = time_period+2000, y = totalbirth_prevalence, group = age_category))+
-  geom_line(aes(colour = age_category, y = predicted_mean))+
-  geom_ribbon(aes(ymin = lower_bound, ymax = upper_bound, fill = age_category), alpha = 0.3)+
-  geom_line(aes(colour = age_category), alpha = 0.3, 
-            size=0.5)+
-  geom_point(aes(colour = age_category), size=3)+
-  labs(x = "Year of birth",
-       y = "Live birth prevalence per 10,000 live births",
-       colour = "Maternal age group (yrs)",
-       fill = "Maternal age group (yrs)")+
-  theme_minimal()+
-  theme(text = element_text(size=20))
-
-
-### just plot without predicted mean
-ggplot(MA_group_data_bytime, aes(x = time_period, y = totalbirth_prevalence, group = age_category))+
-  geom_line(aes(colour = age_category), alpha = 0.3, 
-            size=0.5)+
-  geom_point(aes(colour = age_category), size=3)+
-  labs(x = "Year (of pregnancy end)",
-       y = "Live birth prevalence of DS (per 10,000 total births)",
-       colour = "Maternal age group",
-       fill = "Maternal age group")+
-  theme_minimal()+
-  theme(text = element_text(size=20))
-
-## Final plot for manuscript
+## Final plot for manuscript (Figure 4d)
 
 ma_plot4 <- ggplot(MA_group_data_bytime, aes(x = time_period+2000, y = totalbirth_prevalence, group = age_category))+
   geom_line(aes(colour = age_category, y = predicted_mean))+
@@ -2087,34 +1802,17 @@ SIMD_group_data <- SIMD_group_data%>%
          births_prev_ci = paste0(round(prevalence,2), " (", round(ci_lower, 2), "," ,round(ci_upper, 2), ")")) %>%
   ungroup()
 
-##### plot prevalence by SIMD
-
-ggplot(SIMD_group_data, aes(x=maternal_simd_quintile, y = livebirth_prevalence))+
-  geom_line(group =1, colour = "purple")+
-  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.6, colour = "purple")+
-  geom_point(stat="identity", fill = "black")+
-  labs(x = "Maternal SIMD group (1 - most deprived, 5 - least deprived)", y = "Live birth prevalence per 10,000 live births")+
-  theme_minimal()+
-  theme(text = element_text(size=20))+
-  ylim(0,20)
 
 ##### Model of SIMD and LB prevalence --------------------------------
 
-
 vglm1<-vglm(SIMD_group_data$count_sliccd ~ SIMD_group_data$maternal_simd_quintile, poissonff(bred=TRUE), offset=log(count_denom), 
             data=SIMD_group_data)
-
 vglm1summary <- summary(vglm1)
-
 show.summary.vglm(vglm1summary)
-
-
 vglm1summary <- summaryvglm(vglm1)
-
 CI <- data.frame(confint(vglm1))
 
 ###create summary table
-
 vglm1summary_tbl <- data.frame (coef(vglm1))
 
 vglm1summary_tbl <- vglm1summary_tbl%>%
@@ -2123,9 +1821,9 @@ vglm1summary_tbl <- vglm1summary_tbl%>%
 colnames(vglm1summary_tbl)[1] <- "Coefficients_Est"
 
 ## add in coefficients names column 
-
 vglm1summary_tbl <- vglm1summary_tbl%>%
   mutate(Coefficients = c("Intercept" ,"2", "3", "4", "5"))
+
 #reorder columns in data
 vglm1summary_tbl <- vglm1summary_tbl[c("Coefficients", "Coefficients_Est", "Lower", "Upper")]
 
@@ -2139,9 +1837,7 @@ vglm1summary_tbl<- vglm1summary_tbl%>%
 
 vglm1summary_tbl$pRR_CI_lower <- round(vglm1summary_tbl$pRR_CI_lower, 2)
 vglm1summary_tbl$pRR_CI_upper <- round(vglm1summary_tbl$PRR_CI_upper, 2)
-
 vglm1summary_tbl$pRR <-round(vglm1summary_tbl$pRR,2)
-
 vglm1summary_tbl$`P value` <-round(vglm1summary_tbl$`P value`,3)
 vglm1summary_tbl$Coefficients_Est <-round(vglm1summary_tbl$Coefficients_Est,2)
 vglm1summary_tbl$Lower <-round(vglm1summary_tbl$Lower,2)
@@ -2151,12 +1847,8 @@ LB_SIMD_vglm1summary_tbl <- vglm1summary_tbl%>%
   mutate(estimate_CI = paste0(Coefficients_Est," (", Lower, ", ", Upper,")"))%>%
   mutate(pRR_CI = paste0(pRR," (", vglm1summary_tbl$pRR_CI_lower, ", ", pRR_CI_upper,")"))
 
-## Save out in excel
 
-write_xlsx(LB_SIMD_vglm1summary_tbl, paste0(objective1,"predicted_livebirthprev_SIMD.xlsx") )
-
-
-##### plotting SIMD predicted LB prevalence -------------------------------------
+##### plotting SIMD predicted LB prevalence (Figure 3e) -------------------------------------
 
 ## For birth prevalence 
 
@@ -2277,10 +1969,6 @@ LB_SIMD_model_with_time<- SIMD_model_with_time%>%
   mutate(Estimate_CI = CI_model_with_time_summary$estimate_CI)%>%
   mutate(pRR_CI = CI_model_with_time_summary$pRR_CI)
 
-#### save out in excel 
-
-write_xlsx(LB_SIMD_model_with_time, paste0(objective2,"LB_model_SIMD_with_time.xlsx") )
-
 ####### plotting SIMD with time ---------------------------------------------------
 
 # Predict values
@@ -2310,7 +1998,7 @@ print(LB_SIMD_result_df_vglm1)
 LB_SIMD_group_data_bytime <- SIMD_group_data_bytime%>%
   mutate(predicted_mean = LB_SIMD_result_df_vglm1$Predicted_Mean, lower_bound = LB_SIMD_result_df_vglm1$Lower_Bound, upper_bound = LB_SIMD_result_df_vglm1$Upper_Bound)
 
-#### plotting predicted prevalence per year + SIMD ------------------------------------
+#### plotting predicted prevalence per year + SIMD (Figure 4d)------------------------------------
 
 ggplot(LB_SIMD_group_data_bytime, aes(x = time_period+2000, y = totalbirth_prevalence, group = maternal_simd_quintile))+
   geom_line(aes(colour = maternal_simd_quintile), alpha = 0.3, 
@@ -2370,8 +2058,6 @@ HB_group_data <- HB_group_data%>%
 HB_group_data <- HB_group_data%>%
   mutate(livebirth_prevalence = count_sliccd/count_denom * 10000)
 
-
-
 HB_group_data <- HB_group_data%>%
   rowwise()%>%
   mutate(ci = list(calculate_CI(count_sliccd, count_denom)),
@@ -2380,8 +2066,6 @@ HB_group_data <- HB_group_data%>%
          ci_upper = ci$ci_upper,
          births_prev_ci = paste0(round(prevalence,2), " (", round(ci_lower, 2), "," ,round(ci_upper, 2), ")")) %>%
   ungroup()
-
-
 
 ##### plot prevalence by HB
 
@@ -2415,23 +2099,16 @@ HB_group_data <- HB_group_data%>%
 
 ##### healthboard and LB prevalence model -----------------------------------
 
-
 vglm1<-vglm(HB_group_data$count_sliccd ~ HB_group_data$healthboard_of_residence, poissonff(bred=TRUE), offset=log(count_denom), 
             data=HB_group_data)
-
 vglm1summary <- summary(vglm1)
-
 show.summary.vglm(vglm1summary)
-
-
 vglm1summary <- summaryvglm(vglm1)
-
 CI <- data.frame(confint(vglm1))
 
 ###create summary table
 
 vglm1summary_tbl <- data.frame (coef(vglm1))
-
 vglm1summary_tbl <- vglm1summary_tbl%>%
   mutate(Lower = CI$X2.5.., Upper = CI$X97.5.. )
 ## rename table columns 
@@ -2468,10 +2145,6 @@ HB_LB_vglm1summary_tbl <- vglm1summary_tbl%>%
   mutate(estimate_CI = paste0(Coefficients_Est," (", Lower, ", ", Upper,")"))%>%
   mutate(pRR_CI = paste0(pRR," (", vglm1summary_tbl$pRR_CI_lower, ", ", pRR_CI_upper,")"))
 
-
-write_xlsx(HB_LB_vglm1summary_tbl, paste0(objective1,"predicted_livebirthprev_HB.xlsx") )
-
-
 ########## plotting MA predicted LB prevalence -------------------------------------
 
 ## For birth prevalence 
@@ -2499,19 +2172,7 @@ HB_LB_result_df_vglm1 <- data.frame(
 )
 print(HB_LB_result_df_vglm1)
 
-#### PLOT THIS 
-
-ggplot(HB_LB_result_df_vglm1, aes(x = healthboard_of_residence, y = Predicted_Mean)) +
-  geom_bar(stat = "identity", fill = "purple", alpha = 0.3)+
-  coord_flip()+
-  geom_errorbar(aes(ymin = Lower_Bound, ymax = Upper_Bound), colour = "purple", alpha = 0.7, width = 0.4)+
-  geom_point(aes(y = Predicted_Mean), shape = 19, size = 3, color = "purple")+
-  labs(x = "NHS health board of residence", y = "Live birth prevalence per 10,000 live births")+
-  theme_minimal()+
-  theme(text = element_text(size=20))+
-  ylim(0,20)
-
-# final plot for manuscript 
+# final plot for manuscript (Figure 3e)
 
 HB_PLOT2<- ggplot(HB_LB_result_df_vglm1, aes(x = healthboard_of_residence, y = birth_prev)) +
   geom_bar(stat = "identity", fill = "purple", alpha = 0.3)+
@@ -2605,15 +2266,8 @@ LB_HB_model_with_time<- LB_HB_model_with_time%>%
   mutate(Estimate_CI = CI_model_with_time_summary$estimate_CI)%>%
   mutate(pRR_CI = CI_model_with_time_summary$pRR_CI)
 
-#### save out in excel 
-
-write_xlsx(LB_HB_model_with_time, paste0(objective2,"LB_model_HB_with_time.xlsx") )
-
-
 #### plotting HB AND time -----------------------------------------------------
 
-
-#### plotting HB with time
 
 # Predict values
 HB_time <- data.frame(time_period = HB_group_data_bytime$time_period, healthboard_of_residence = HB_group_data_bytime$healthboard_of_residence, count_sliccd = HB_group_data_bytime$count_sliccd, count_denom = HB_group_data_bytime$count_denom)
@@ -2684,6 +2338,7 @@ hb_PLOT_4 <- ggplot(HB_group_data_bytime, aes(x = time_period+2000, y = totalbir
 
 hb_PLOT_4
 
+
 ## 6. Sex and live birth prevalence ############################################
 
 ### dataset with sex and prevalence per age group 
@@ -2712,16 +2367,6 @@ SEX_group_data <- SEX_group_data%>%
          ci_upper = ci$ci_upper,
          births_prev_ci = paste0(round(prevalence,2), " (", round(ci_lower, 2), "," ,round(ci_upper, 2), ")")) %>%
   ungroup()
-
-ggplot(SEX_group_data, aes(x=sex_2, y = livebirth_prevalence))+
-  geom_bar(stat="identity", fill = "purple", alpha = 0.5)+
-  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2, colour = "purple")+
-  labs(title = "The live birth prevalence of babies with DS in Scotland by infant sex", x = "Infant sex", y = "Live birth prevalence (per 10,000 live births)")+
-  theme_minimal()+
-  theme(text = element_text(size=15))+
-  ylim(0,15)
-
-
 
 ##### model of sex and LB prevalence model ----------------------------------------
 
@@ -2777,9 +2422,6 @@ LB_SEX_vglm1summary_tbl <- vglm1summary_tbl%>%
   mutate(pRR_CI = paste0(pRR," (", vglm1summary_tbl$pRR_CI_lower, ", ", pRR_CI_upper,")"))
 
 
-write_xlsx(LB_SEX_vglm1summary_tbl, paste0(objective1,"predicted_livebirthprev_SEX.xlsx") )
-
-
 ##### plotting sex and LB  predicted prevalence -----------------------------
 
 ## For birth prevalence 
@@ -2806,19 +2448,6 @@ sex_LB_result_df_vglm1 <- data.frame(
   birth_prev = (SEX_group_data$count_sliccd / SEX_group_data$count_denom) * 10000  # Include prevs in the result_df
 )
 print(sex_LB_result_df_vglm1)
-
-### plot this data 
-
-ggplot(sex_LB_result_df_vglm1, aes(x = sex_2, y = birth_prev)) +
-  geom_bar(stat = "identity",color = "grey", alpha = 0.5)+
-  geom_point(aes(y = Predicted_Mean), shape = 4, size = 3, color = "purple")+
-  geom_errorbar(aes(ymin = Lower_Bound, ymax = Upper_Bound), colour = "purple", alpha = 0.5, width = 0.4)+
-  labs(title = 'Observed and predicted live birth prevalence of pregnancies with DS, by infant sex',
-       x = "Infant sex", y = "Live birth prevalence (per 10,000 live births")+
-  theme_minimal()+
-  theme(text = element_text(size=20))+
-  ylim(0,20)
-
 
 #### infant sex and time --------------------------------------------------------
 
@@ -2884,9 +2513,6 @@ LB_SEX_model_with_time<- sex_model_with_time%>%
   mutate(Estimate_CI = CI_model_with_time_summary$estimate_CI)%>%
   mutate(pRR_CI = CI_model_with_time_summary$pRR_CI)
 
-#### save out in excel 
-
-write_xlsx(LB_SEX_model_with_time, paste0(objective2,"LB_model_SEX_with_time.xlsx") )
 
 ##### plot LB prev of DS and infant sex over time ----------------------------
 
@@ -2918,24 +2544,6 @@ print(sex_LB_result_df_vglm1)
 SEX_group_data_bytime <- SEX_group_data_bytime%>%
   mutate(predicted_mean = sex_LB_result_df_vglm1$Predicted_Mean, lower_bound = sex_LB_result_df_vglm1$Lower_Bound, upper_bound = sex_LB_result_df_vglm1$Upper_Bound)
 
-### plotting predicted prevalence per year + SIMD
-
-ggplot(SEX_group_data_bytime, aes(x = time_period+2000, y = totalbirth_prevalence, group = sex_2))+
-  geom_line(aes(colour = sex_2), alpha = 0.3, 
-            size=0.5)+
-  geom_line(aes(colour = sex_2, y = predicted_mean))+
-  geom_ribbon(aes(ymin = lower_bound, ymax = upper_bound, fill = sex_2), alpha = 0.3)+
-  geom_point(aes(colour = sex_2), size=3)+
-  labs(x = "Year of birth",
-       y = "Live birth prevalence per 10,000 live births",
-       colour = "Infant sex",
-       fill = "Infant sex")+
-  scale_colour_manual(values = c("purple", "orange"))+
-  scale_fill_manual(values = c("purple", "orange"))+
-  ylim(0,20)+
-  theme_minimal()+
-  theme(text = element_text(size=25))+
-  theme(strip.text.y = element_blank() )
 
 
 ## 7. final model - live birth prevalence -----------------------------------
@@ -3016,81 +2624,6 @@ CI_model_with_time_summary <- CI_model_with_time_summary%>%
 final_model_LB <- final_model_LB%>%
   mutate(Estimate_CI = CI_model_with_time_summary$estimate_CI)%>%
   mutate(pRR_CI = CI_model_with_time_summary$pRR_CI)
-
-#### save out in excel 
-
-write_xlsx(final_model_LB, paste0(objective2,"final_LB_model_output.xlsx") )
-
-
-#### grouped figures 3 and 4 for the manuscript --------------------------------
-
-library(patchwork)
-
-##### figure 3 -------------------------------------------------
-
-
-Figure_3 <- MA_plot1 + MA_plot3 + SIMD_PLOT1 + SIMD_plot3 + HB_plot1 +  HB_PLOT2 +
-  plot_layout(ncol = 2)& theme(plot.margin = unit(c(1, 1, 1, 1), "cm"))
-
-Figure_3
-
-## pdf of figure (version 2)
-
-pdf("/PHI_conf/NIPT_evaluation_anon/Data/wd_phd/Figures/Prevalence stats/Figure3_final_version2.pdf",         # File name
-    width = 25, height = 30, # Width and height in inches
-    bg = "white",          # Background color
-    colormodel = "cmyk"    # Color model (cmyk is required for most publications)
-)          # Paper size
-
-Figure_3
-
-dev.off()
-
-##### figure 4 ------------------------------------------------------------
-
-Figure_4 <- MA_plot2 + ma_plot4 + SIMD_plot2 + simd_plot4+
-  plot_layout(ncol = 2)& theme(plot.margin = unit(c(1, 1, 1, 1), "cm"))
-
-Figure_4
-
-
-##pdf
-pdf("/PHI_conf/NIPT_evaluation_anon/Data/wd_phd/Figures/Prevalence stats/Figure4_final.pdf",         # File name
-    width = 25, height = 20, # Width and height in inches
-    bg = "white",          # Background color
-    colormodel = "cmyk"    # Color model (cmyk is required for most publications)
-)      
-
-Figure_4
-
-dev.off()
-
-
-## appendix figure: 1. healthboard by time, total birth and live birth prevs
-
-
-pdf("/PHI_conf/NIPT_evaluation_anon/Data/wd_phd/Figures/Prevalence stats/FigureS2_final.pdf",         # File name
-    width = 30, height = 20, # Width and height in inches
-    bg = "white",          # Background color
-    colormodel = "cmyk"    # Color model (cmyk is required for most publications)
-)          # Paper size
-
-HB_plot3 + hb_PLOT_4 +
-  plot_layout(ncol = 2)& theme(plot.margin = unit(c(1, 1, 1, 1), "cm"))
-
-dev.off()
-
-## png version 
-
-
-Figures <- "/PHI_conf/NIPT_evaluation_anon/Data/wd_phd/Figures/appendixS2.png"
-
-png(filename = Figures, width = 30, height = 20 , units = "in", res = 300)
-
-HB_plot3 + hb_PLOT_4 +
-  plot_layout(ncol = 2)& theme(plot.margin = unit(c(1, 1, 1, 1), "cm"))
-
-dev.off()
 
 
 
