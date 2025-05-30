@@ -38,11 +38,7 @@ library(epitools)    ## for estimating 95% CIs for prevalence
 library(glmmTMB)     ## for modelling the data
 library(VGAM)
 library(rms)         ## for restricted cubic splines 
-library(Hmisc)
-library(MatrixModels)
-library(mvtnorm)
-library(quantreg)
-library(gridExtra)
+
 
 ######### 2. Read in the data ########################
 
